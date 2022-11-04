@@ -1,7 +1,11 @@
 package com.study.club.config;
 
+import com.study.club.security.filter.ApiCheckFilter;
+import com.study.club.security.filter.ApiLoginFilter;
+import com.study.club.security.handler.ApiLoginFailHandler;
 import com.study.club.security.handler.ClubLoginSuccessHandler;
 import com.study.club.security.service.ClubUserDetailsService;
+import com.study.club.security.util.JWTUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +16,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @Log4j2
@@ -46,10 +51,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.oauth2Login().successHandler(successHandler());
         http.rememberMe().tokenValiditySeconds(60*60*24*7).userDetailsService(userDetailsService);
+        http.addFilterBefore(apiCheckFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(apiLoginFilter(), UsernamePasswordAuthenticationFilter.class);
     };
 
     @Bean
     public ClubLoginSuccessHandler successHandler() {
         return new ClubLoginSuccessHandler(passwordEncoder());
+    }
+
+    @Bean
+    public ApiCheckFilter apiCheckFilter() {
+        return new ApiCheckFilter("/notes/**/*", jwtUtil());
+    }
+
+    @Bean
+    public ApiLoginFilter apiLoginFilter() throws Exception {
+        ApiLoginFilter apiLoginFilter = new ApiLoginFilter("/api/login", jwtUtil());
+        apiLoginFilter.setAuthenticationManager(authenticationManager());
+        apiLoginFilter.setAuthenticationFailureHandler(new ApiLoginFailHandler());
+        return apiLoginFilter;
+    }
+
+    public JWTUtil jwtUtil() {
+        return new JWTUtil();
     }
 }

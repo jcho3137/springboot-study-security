@@ -32,9 +32,10 @@ dependencies {
 	implementation group: 'org.mariadb.jdbc', name: 'mariadb-java-client'
 	implementation group: 'org.thymeleaf.extras', name: 'thymeleaf-extras-java8time', version: '3.0.4.RELEASE'
 	implementation group: 'net.coobird', name: 'thumbnailator', version: '0.4.8'
+	implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
 }
 
 tasks.named('test') {
-	exclude '**/*'
-	//useJUnitPlatform()
+	//exclude '**/*'
+	useJUnitPlatform()
 }
